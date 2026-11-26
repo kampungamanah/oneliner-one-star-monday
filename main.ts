@@ -1,15 +1,32 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 
-// A one-star review of Monday, written as if Monday were a restaurant.
-// Writes the line to /output/entry.txt (or $MAKEFUN_OUTPUT_DIR/entry.txt).
-// No trailing newline: the gate counts every character (1 to 180).
-// The complaint is a diner's: a long wait, a waiter passing the blame,
-// and a bill that charges for the whole week up front.
-const line = "One star. Waited forty minutes for my coffee, the waiter blamed the weekend, and Monday still charged me for the full week.";
-for (const dir of [process.env.MAKEFUN_OUTPUT_DIR, "/output"]) {
-  if (!dir) continue;
+// One Star for Monday: a one-star review of Monday, framed as a
+// restaurant review. The entry is a single line, written verbatim to
+// entry.txt. The grader counts characters, so the file must contain
+// exactly the line below and nothing else — no trailing newline.
+
+const REVIEW =
+  "One star. Waited forty minutes for my coffee, the waiter blamed the weekend, and Monday still charged me for the full week.";
+
+const OUTPUT_FILE = "entry.txt";
+const DEFAULT_DIR = "/output";
+
+function candidateDirs(): string[] {
+  // The env var wins when set; the default is always tried as well.
+  return [process.env.MAKEFUN_OUTPUT_DIR, DEFAULT_DIR].filter(
+    (dir): dir is string => Boolean(dir),
+  );
+}
+
+function writeReview(dir: string): void {
   try {
     mkdirSync(dir, { recursive: true });
-    writeFileSync(dir + "/entry.txt", line);
-  } catch {}
+    writeFileSync(`${dir}/${OUTPUT_FILE}`, REVIEW);
+  } catch {
+    // A directory we cannot write to is skipped, not fatal.
+  }
+}
+
+for (const dir of candidateDirs()) {
+  writeReview(dir);
 }
